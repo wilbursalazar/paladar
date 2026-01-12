@@ -56,7 +56,7 @@ loginBtn.addEventListener('click', async () => {
       body: JSON.stringify({ username, password })
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
       loginError.textContent = data.error || 'Invalid login';
@@ -126,7 +126,6 @@ function validateRegisterForm() {
   return ok;
 }
 
-// Each error disappears once the value changes
 regUsername.addEventListener('input', () => clearInlineError(errUsername));
 regPassword.addEventListener('input', () => clearInlineError(errPassword));
 regTerms.addEventListener('change', () => {
@@ -148,14 +147,13 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
       body: JSON.stringify({ username, password })
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
       setInlineError(errUsername, data.error || 'Registration error');
       return;
     }
 
-    // After register, go back to login with fields prefilled
     loginUsername.value = username;
     loginPassword.value = '';
     regPassword.value = '';
@@ -184,11 +182,13 @@ document.getElementById('logoutLink').addEventListener('click', (e) => {
   setUserBar(null);
   setView('viewLogin');
 
-  // reset dashboard UI
   categoryList.innerHTML = '';
   show(placeholder);
   hide(questionsArea);
   placeholder.textContent = 'Select a Category to view its questions';
+
+  currentCategoryId = null;
+  currentCategoryName = '';
 });
 
 // ===== Dashboard: Categories + Questions + Answers =====
@@ -212,13 +212,12 @@ let currentCategoryName = '';
 async function loadCategories() {
   categoryList.innerHTML = '';
 
-  // reset main panel
   show(placeholder);
   hide(questionsArea);
   placeholder.textContent = 'Select a Category to view its questions';
 
   const res = await fetch(`${API_BASE}/categories`);
-  const cats = await res.json();
+  const cats = await res.json().catch(() => []);
 
   cats.forEach((c) => {
     const div = document.createElement('div');
@@ -247,15 +246,20 @@ async function loadQuestionsForCategory(categoryId, categoryName) {
 
   try {
     const res = await fetch(`${API_BASE}/questions/${categoryId}`);
-    const questions = await res.json();
+    const questions = await res.json().catch(() => []);
 
     questionsTitle.textContent = `${categoryName} — Questions`;
     questionsList.innerHTML = '';
 
+    // Always show questionsArea so the Post Question form is usable even if empty
+    hide(placeholder);
+    show(questionsArea);
+
     if (!Array.isArray(questions) || questions.length === 0) {
-      placeholder.textContent = 'No questions yet.';
-      show(placeholder);
-      hide(questionsArea);
+      const empty = document.createElement('div');
+      empty.className = 'placeholder';
+      empty.textContent = 'No questions yet. Be the first to ask one.';
+      questionsList.appendChild(empty);
       return;
     }
 
@@ -282,9 +286,6 @@ async function loadQuestionsForCategory(categoryId, categoryName) {
       questionsList.appendChild(card);
       await loadAnswersForQuestion(q.id);
     }
-
-    hide(placeholder);
-    show(questionsArea);
   } catch (err) {
     placeholder.textContent = 'Failed to load questions. Is the backend running?';
     show(placeholder);
@@ -299,7 +300,7 @@ async function loadAnswersForQuestion(questionId) {
   list.innerHTML = '';
 
   const res = await fetch(`${API_BASE}/answers/${questionId}`);
-  const answers = await res.json();
+  const answers = await res.json().catch(() => []);
 
   if (!Array.isArray(answers) || answers.length === 0) return;
 
@@ -314,11 +315,12 @@ async function loadAnswersForQuestion(questionId) {
   });
 }
 
-// Post Question handler
+// Post Question handler (robust errors)
 postQuestionBtn.addEventListener('click', async () => {
   hide(postQuestionError);
+  postQuestionError.textContent = '';
 
-  if (!currentUser) {
+  if (!currentUser || !currentUser.id) {
     postQuestionError.textContent = 'You must be logged in.';
     show(postQuestionError);
     return;
@@ -351,10 +353,13 @@ postQuestionBtn.addEventListener('click', async () => {
       })
     });
 
-    const data = await res.json();
+    let data = {};
+    try { data = await res.json(); } catch { data = {}; }
 
     if (!res.ok) {
-      postQuestionError.textContent = data.error || 'Failed to post question.';
+      postQuestionError.textContent = (data && data.error)
+        ? data.error
+        : `Failed to post question (HTTP ${res.status})`;
       show(postQuestionError);
       return;
     }
@@ -368,17 +373,18 @@ postQuestionBtn.addEventListener('click', async () => {
   }
 });
 
-// Post Answer handler
+// Post Answer handler (event delegation, robust errors)
 document.addEventListener('click', async (e) => {
   if (!e.target.classList.contains('postAnswerBtn')) return;
 
-  if (!currentUser) return;
+  if (!currentUser || !currentUser.id) return;
 
   const qid = Number(e.target.dataset.qid);
   const input = document.getElementById(`answerInput-${qid}`);
   const errEl = document.getElementById(`answerErr-${qid}`);
 
   hide(errEl);
+  errEl.textContent = '';
 
   const body = input.value.trim();
   if (!body) {
@@ -394,10 +400,13 @@ document.addEventListener('click', async (e) => {
       body: JSON.stringify({ questionId: qid, userId: currentUser.id, body })
     });
 
-    const data = await res.json();
+    let data = {};
+    try { data = await res.json(); } catch { data = {}; }
 
     if (!res.ok) {
-      errEl.textContent = data.error || 'Failed to post answer.';
+      errEl.textContent = (data && data.error)
+        ? data.error
+        : `Failed to post answer (HTTP ${res.status})`;
       show(errEl);
       return;
     }
