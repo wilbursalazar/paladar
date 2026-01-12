@@ -1,0 +1,51 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, Arial, sans-serif; background: #f6f6f6; }
+
+.app { max-width: 980px; margin: 0 auto; padding: 16px; }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.brand { margin: 0; }
+.userbar { display: flex; gap: 12px; align-items: center; }
+
+.view { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,.08); margin-top: 12px; }
+
+.formRow { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+input { padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
+button { padding: 10px 14px; border: 0; border-radius: 8px; cursor: pointer; }
+
+.switch { margin-top: 12px; }
+
+.hidden { display: none; }
+
+.errorBanner { padding: 10px; border-radius: 8px; background: #ffe8e8; border: 1px solid #ffb3b3; color: #8a1f1f; margin: 10px 0; }
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 10px 14px;
+  align-items: start;
+}
+
+.inlineError {
+  display: inline-block;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #ffe8e8;
+  border: 1px solid #ffb3b3;
+  color: #8a1f1f;
+}
+
+.checkboxWrap { padding: 8px 10px; border-radius: 8px; border: 1px solid transparent; }
+.checkboxWrap.invalid { border-color: #ff4d4d; background: #fff3f3; }
+.checkboxLabel { display: flex; gap: 8px; align-items: center; }
+
+.dash { display: grid; grid-template-columns: 260px 1fr; gap: 12px; }
+.categories { background: white; padding: 12px; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+.categoryList { max-height: 420px; overflow-y: auto; border-top: 1px solid #eee; margin-top: 8px; padding-top: 8px; }
+
+.catItem { padding: 10px; border-radius: 8px; cursor: pointer; }
+.catItem:hover { background: #f0f0f0; }
+.catItem.active { background: #e9f2ff; }
+
+.main { background: white; padding: 12px; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,.08); min-height: 300px; }
+.placeholder { color: #666; padding: 18px; border: 1px dashed #ccc; border-radius: 10px; }

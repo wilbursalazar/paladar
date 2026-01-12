@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Paladar</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1 class="brand">Paladar</h1>
+      <div id="userBar" class="userbar hidden">
+        <span id="usernameLabel"></span>
+        <a href="#" id="logoutLink">Logout</a>
+      </div>
+    </header>
+
+    
+    <section id="viewLogin" class="view">
+      <h2>Login</h2>
+
+      <div class="formRow">
+        <label for="loginUsername">Username</label>
+        <input id="loginUsername" type="text" autocomplete="username" />
+      </div>
+
+      <div class="formRow">
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" />
+      </div>
+
+      <div id="loginError" class="errorBanner hidden"></div>
+
+      <button id="loginBtn">Login</button>
+
+      <p class="switch">
+        Don’t have an account?
+        <a href="#" id="goRegister">Register</a>
+      </p>
+    </section>
+
+    
+    <section id="viewRegister" class="view hidden">
+      <h2>Register</h2>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="regUsername">Username</label>
+          <input id="regUsername" type="text" />
+        </div>
+        <div class="field errorRight">
+          <span id="errUsername" class="inlineError hidden"></span>
+        </div>
+
+        <div class="field">
+          <label for="regPassword">Password</label>
+          <input id="regPassword" type="password" />
+        </div>
+        <div class="field errorRight">
+          <span id="errPassword" class="inlineError hidden"></span>
+        </div>
+
+        <div class="field checkboxWrap" id="termsWrap">
+          <label class="checkboxLabel">
+            <input id="regTerms" type="checkbox" />
+            I agree to the terms
+          </label>
+        </div>
+        <div class="field errorRight">
+          <span id="errTerms" class="inlineError hidden"></span>
+        </div>
+      </div>
+
+      <button id="registerBtn">Register</button>
+
+      <p class="switch">
+        Already have an account?
+        <a href="#" id="goLogin">Back to Login</a>
+      </p>
+    </section>
+
+
+
+    <section id="viewDashboard" class="view hidden">
+      <div class="dash">
+        <aside class="categories">
+          <h3>Categories</h3>
+          <div id="categoryList" class="categoryList"></div>
+        </aside>
+
+        <main class="main">
+          <div id="placeholder" class="placeholder">
+            Select a Category to view its questions
+          </div>
+
+          <div id="questionsArea" class="hidden">
+            <h3 id="questionsTitle"></h3>
+            <div id="questionsList"></div>
+          </div>
+        </main>
+      </div>
+    </section>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
