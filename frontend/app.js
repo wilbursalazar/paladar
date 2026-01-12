@@ -191,13 +191,23 @@ document.getElementById('logoutLink').addEventListener('click', (e) => {
   placeholder.textContent = 'Select a Category to view its questions';
 });
 
-// ===== Dashboard: Categories =====
+// ===== Dashboard: Categories + Questions + Answers =====
 const categoryList = document.getElementById('categoryList');
 
 const placeholder = document.getElementById('placeholder');
 const questionsArea = document.getElementById('questionsArea');
 const questionsTitle = document.getElementById('questionsTitle');
 const questionsList = document.getElementById('questionsList');
+
+// Post Question UI
+const newQuestionTitle = document.getElementById('newQuestionTitle');
+const newQuestionBody = document.getElementById('newQuestionBody');
+const postQuestionBtn = document.getElementById('postQuestionBtn');
+const postQuestionError = document.getElementById('postQuestionError');
+
+// Keep track of selection
+let currentCategoryId = null;
+let currentCategoryName = '';
 
 async function loadCategories() {
   categoryList.innerHTML = '';
@@ -228,6 +238,9 @@ async function loadCategories() {
 }
 
 async function loadQuestionsForCategory(categoryId, categoryName) {
+  currentCategoryId = categoryId;
+  currentCategoryName = categoryName;
+
   show(placeholder);
   hide(questionsArea);
   placeholder.textContent = 'Loading questions...';
@@ -246,16 +259,29 @@ async function loadQuestionsForCategory(categoryId, categoryName) {
       return;
     }
 
-    questions.forEach((q) => {
+    for (const q of questions) {
       const card = document.createElement('div');
       card.className = 'qCard';
+
       card.innerHTML = `
         <h4 class="qTitle">${escapeHtml(q.title)}</h4>
         <div class="qMeta">By ${escapeHtml(q.username)} • ${escapeHtml(q.created_at)}</div>
         <p class="qBody">${escapeHtml(q.body)}</p>
+
+        <div class="answerBlock">
+          <div class="answerList" id="answerList-${q.id}"></div>
+
+          <div class="answerForm">
+            <textarea id="answerInput-${q.id}" placeholder="Write an answer"></textarea>
+            <button data-qid="${q.id}" class="postAnswerBtn">Post Answer</button>
+            <div id="answerErr-${q.id}" class="inlineError hidden"></div>
+          </div>
+        </div>
       `;
+
       questionsList.appendChild(card);
-    });
+      await loadAnswersForQuestion(q.id);
+    }
 
     hide(placeholder);
     show(questionsArea);
@@ -265,6 +291,124 @@ async function loadQuestionsForCategory(categoryId, categoryName) {
     hide(questionsArea);
   }
 }
+
+async function loadAnswersForQuestion(questionId) {
+  const list = document.getElementById(`answerList-${questionId}`);
+  if (!list) return;
+
+  list.innerHTML = '';
+
+  const res = await fetch(`${API_BASE}/answers/${questionId}`);
+  const answers = await res.json();
+
+  if (!Array.isArray(answers) || answers.length === 0) return;
+
+  answers.forEach((a) => {
+    const div = document.createElement('div');
+    div.className = 'answer';
+    div.innerHTML = `
+      <div class="answerMeta">By ${escapeHtml(a.username)} • ${escapeHtml(a.created_at)}</div>
+      <div>${escapeHtml(a.body)}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// Post Question handler
+postQuestionBtn.addEventListener('click', async () => {
+  hide(postQuestionError);
+
+  if (!currentUser) {
+    postQuestionError.textContent = 'You must be logged in.';
+    show(postQuestionError);
+    return;
+  }
+
+  if (!currentCategoryId) {
+    postQuestionError.textContent = 'Select a category first.';
+    show(postQuestionError);
+    return;
+  }
+
+  const title = newQuestionTitle.value.trim();
+  const body = newQuestionBody.value.trim();
+
+  if (!title || !body) {
+    postQuestionError.textContent = 'Title and body are required.';
+    show(postQuestionError);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/questions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        body,
+        categoryId: currentCategoryId,
+        userId: currentUser.id
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      postQuestionError.textContent = data.error || 'Failed to post question.';
+      show(postQuestionError);
+      return;
+    }
+
+    newQuestionTitle.value = '';
+    newQuestionBody.value = '';
+    await loadQuestionsForCategory(currentCategoryId, currentCategoryName);
+  } catch (e) {
+    postQuestionError.textContent = 'Network error. Is the backend running?';
+    show(postQuestionError);
+  }
+});
+
+// Post Answer handler
+document.addEventListener('click', async (e) => {
+  if (!e.target.classList.contains('postAnswerBtn')) return;
+
+  if (!currentUser) return;
+
+  const qid = Number(e.target.dataset.qid);
+  const input = document.getElementById(`answerInput-${qid}`);
+  const errEl = document.getElementById(`answerErr-${qid}`);
+
+  hide(errEl);
+
+  const body = input.value.trim();
+  if (!body) {
+    errEl.textContent = 'Answer is required.';
+    show(errEl);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/answers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questionId: qid, userId: currentUser.id, body })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Failed to post answer.';
+      show(errEl);
+      return;
+    }
+
+    input.value = '';
+    await loadAnswersForQuestion(qid);
+  } catch {
+    errEl.textContent = 'Network error.';
+    show(errEl);
+  }
+});
 
 // Start on login
 setView('viewLogin');
