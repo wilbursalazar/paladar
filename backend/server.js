@@ -1,9 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 
-const categoriesRouter = require('./routes/categories');
 const authRouter = require('./routes/auth');
+const categoriesRouter = require('./routes/categories');
 const questionsRouter = require('./routes/questions');
+const answersRouter = require('./routes/answers');
 
 const app = express();
 app.use(cors());
@@ -16,13 +17,23 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     message: 'Paladar API is running',
-    routes: ['/health', '/categories', '/questions/:categoryId', '/auth/register', '/auth/login']
+    routes: [
+      '/health',
+      '/categories',
+      '/questions/:categoryId',
+      'POST /questions',
+      '/answers/:questionId',
+      'POST /answers',
+      '/auth/register',
+      '/auth/login'
+    ]
   });
 });
 
 app.use('/auth', authRouter);
 app.use('/categories', categoriesRouter);
 app.use('/questions', questionsRouter);
+app.use('/answers', answersRouter);
 
 const PORT = 3000;
 app.listen(PORT, () => {
