@@ -82,26 +82,41 @@
 
 
 
-    <section id="viewDashboard" class="view hidden">
-      <div class="dash">
-        <aside class="categories">
-          <h3>Categories</h3>
-          <div id="categoryList" class="categoryList"></div>
-        </aside>
+<section id="viewDashboard" class="view hidden">
+  <div class="dash">
+    <aside class="categories">
+      <h3>Categories</h3>
+      <div id="categoryList" class="categoryList"></div>
+    </aside>
 
-        <main class="main">
-          <div id="placeholder" class="placeholder">
-            Select a Category to view its questions
-          </div>
-
-          <div id="questionsArea" class="hidden">
-            <h3 id="questionsTitle"></h3>
-            <div id="questionsList"></div>
-          </div>
-        </main>
+    <main class="main">
+      <div id="placeholder" class="placeholder">
+        Select a Category to view its questions
       </div>
-    </section>
+
+      <div id="questionsArea" class="hidden">
+        <h3 id="questionsTitle"></h3>
+
+        <div class="askBox">
+          <input
+            id="newQuestionTitle"
+            type="text"
+            placeholder="Question title"
+          />
+          <textarea
+            id="newQuestionBody"
+            placeholder="Describe your question"
+          ></textarea>
+          <button id="postQuestionBtn">Post Question</button>
+          <div id="postQuestionError" class="inlineError hidden"></div>
+        </div>
+
+        <div id="questionsList"></div>
+      </div>
+    </main>
   </div>
+</section>
+</div>
 
   <script src="./app.js"></script>
 </body>
